@@ -6,6 +6,8 @@
 
 const MAX_FILE_SIZE_MB = 20;
 const SUPPORTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const DEFAULT_OUTPUT_TYPE = "image/jpeg"; // 统一用有质量参数的格式，避免 PNG 越压越大
+
 
 const fileInput = document.getElementById("file-input");
 const dropArea = document.getElementById("drop-area");
@@ -95,7 +97,8 @@ function compressImage(file, quality) {
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      const mimeType = file.type || "image/jpeg";
+      // 使用支持质量参数的输出格式。PNG 本身是无损的，传 quality 没效果，甚至可能变大。
+      const mimeType = DEFAULT_OUTPUT_TYPE;
 
       canvas.toBlob(
         (blob) => {
@@ -141,14 +144,17 @@ async function handleFile(file) {
 
     const originalBytes = file.size;
     const compressedBytes = compressedBlob.size;
-    const ratio =
+    const ratioNumber =
       originalBytes > 0
-        ? (((originalBytes - compressedBytes) / originalBytes) * 100).toFixed(1)
+        ? ((originalBytes - compressedBytes) / originalBytes) * 100
         : 0;
+    const ratioText = `${ratioNumber.toFixed(1)}%`;
 
-    compressedInfo.textContent = `大小：${formatBytes(
-      compressedBytes
-    )} ｜ 压缩比例：${ratio}%`;
+    const sizeText = `大小：${formatBytes(compressedBytes)} ｜ 压缩比例：${ratioText}`;
+    compressedInfo.textContent =
+      ratioNumber < 0
+        ? `${sizeText}（提示：此图片为 PNG 或已很小，压缩可能变大）`
+        : sizeText;
 
     downloadBtn.disabled = false;
   } catch (err) {
@@ -205,8 +211,8 @@ downloadBtn.addEventListener("click", () => {
     dotIndex > 0
       ? currentOriginalFile.name.slice(0, dotIndex)
       : currentOriginalFile.name;
-  const ext =
-    dotIndex > 0 ? currentOriginalFile.name.slice(dotIndex) : ".jpg";
+  // 输出统一为 JPEG，避免 PNG 越压越大；保持默认扩展名为 .jpg
+  const ext = ".jpg";
   a.href = url;
   a.download = `${baseName}-compressed${ext}`;
   document.body.appendChild(a);
