@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>图片压缩小工具</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="app-header">
+        <h1>图片压缩小工具</h1>
+        <p>在本地浏览器中完成图片压缩，安全又简单。</p>
+      </header>
+
+      <main class="app-main">
+        <section class="upload-section">
+          <div id="drop-area" class="drop-area">
+            <input
+              id="file-input"
+              type="file"
+              accept="image/*"
+              hidden
+            />
+            <div class="drop-content">
+              <p class="drop-title">拖拽图片到这里，或点击选择</p>
+              <p class="drop-subtitle">支持 JPG / PNG / WebP，单张最大 20MB</p>
+              <button id="choose-btn" class="primary-btn">选择图片</button>
+              <p id="error-message" class="error-message" aria-live="polite"></p>
+            </div>
+          </div>
+
+          <div class="controls">
+            <label class="slider-label">
+              压缩质量：
+              <span id="quality-value">80</span>
+            </label>
+            <input
+              id="quality-slider"
+              type="range"
+              min="10"
+              max="100"
+              step="1"
+              value="80"
+            />
+          </div>
+        </section>
+
+        <section class="preview-section">
+          <div class="preview-card">
+            <h2>原图</h2>
+            <div class="preview-image-wrapper">
+              <img id="original-preview" alt="原图预览" />
+            </div>
+            <p id="original-info" class="info-text">尚未选择图片</p>
+          </div>
+
+          <div class="preview-card">
+            <h2>压缩后</h2>
+            <div class="preview-image-wrapper">
+              <img id="compressed-preview" alt="压缩后预览" />
+            </div>
+            <p id="compressed-info" class="info-text">请先上传图片</p>
+            <button
+              id="download-btn"
+              class="primary-btn"
+              disabled
+            >
+              下载压缩图片
+            </button>
+          </div>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <p>所有压缩操作都在你的浏览器本地完成，图片不会上传到服务器。</p>
+      </footer>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
+
+
