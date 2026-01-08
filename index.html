@@ -2,83 +2,256 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <title>图片压缩小工具</title>
+    <title>图片处理工具</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
     <div class="app">
       <header class="app-header">
-        <h1>图片压缩小工具</h1>
-        <p>在本地浏览器中完成图片压缩，安全又简单。</p>
+        <h1>📸 图片处理工具</h1>
+        <p class="header-subtitle">本地处理，安全快速</p>
       </header>
 
       <main class="app-main">
-        <section class="upload-section">
-          <div id="drop-area" class="drop-area">
-            <input
-              id="file-input"
-              type="file"
-              accept="image/*"
-              hidden
-            />
-            <div class="drop-content">
-              <p class="drop-title">拖拽图片到这里，或点击选择</p>
-              <p class="drop-subtitle">支持 JPG / PNG / WebP，单张最大 20MB</p>
-              <button id="choose-btn" class="primary-btn">选择图片</button>
-              <p id="error-message" class="error-message" aria-live="polite"></p>
+        <!-- 功能选择 -->
+        <div class="function-tabs">
+          <button class="tab-btn active" data-tab="compress">压缩图片</button>
+          <button class="tab-btn" data-tab="idphoto">证件照尺寸修改</button>
+        </div>
+
+        <!-- 压缩图片功能 -->
+        <div id="compress-panel" class="main-panel active">
+          <!-- 上传区域 -->
+          <div id="drop-area" class="upload-area">
+            <input id="file-input" type="file" accept="image/*" multiple hidden />
+            <div class="upload-content">
+              <div class="upload-icon">📁</div>
+              <p class="upload-text">拖拽图片到这里或点击选择</p>
+              <button id="choose-btn" class="upload-btn">选择图片</button>
+              <p class="upload-hint">支持 JPG / PNG / WebP / AVIF / HEIC，单张最大 20MB，支持批量压缩</p>
+              <p id="error-message" class="error-message"></p>
             </div>
           </div>
 
-          <div class="controls">
-            <label class="slider-label">
-              压缩质量：
-              <span id="quality-value">80</span>
+          <!-- 压缩控制 -->
+          <div id="compress-controls" class="controls-panel" style="display: none;">
+            <!-- 压缩模式选择 -->
+            <div class="control-group">
+              <label class="control-label">压缩模式</label>
+              <div class="mode-options">
+                <label class="mode-option">
+                  <input type="radio" name="compress-mode" value="quality" checked />
+                  <span>清晰度</span>
+                </label>
+                <label class="mode-option">
+                  <input type="radio" name="compress-mode" value="size" />
+                  <span>指定大小</span>
+                </label>
+                <label class="mode-option">
+                  <input type="radio" name="compress-mode" value="pixel" />
+                  <span>指定像素</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- 清晰度模式 -->
+            <div id="quality-mode" class="control-group mode-control active">
+              <label class="control-label">清晰度</label>
+              <div class="slider-group">
+                <input id="quality-slider" type="range" min="0" max="100" value="100" class="slider" />
+                <div class="slider-value">
+                  <input id="quality-input" type="number" min="0" max="100" value="100" class="value-input" />
+                  <span>%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 指定大小模式 -->
+            <div id="size-mode" class="control-group mode-control">
+              <label class="control-label">目标大小</label>
+              <div class="input-group">
+                <input id="size-input" type="number" min="10" max="20480" step="10" value="1024" class="size-input" />
+                <span>KB</span>
+              </div>
+            </div>
+
+            <!-- 指定像素模式 -->
+            <div id="pixel-mode" class="control-group mode-control">
+              <label class="control-label">最大尺寸</label>
+              <div class="input-row">
+                <label>
+                  <span>宽度</span>
+                  <input id="width-input" type="number" min="100" max="10000" step="100" value="1920" class="size-input" />
+                  <span>px</span>
+                </label>
+                <label>
+                  <span>高度</span>
+                  <input id="height-input" type="number" min="100" max="10000" step="100" value="1080" class="size-input" />
+                  <span>px</span>
             </label>
-            <input
-              id="quality-slider"
-              type="range"
-              min="10"
-              max="100"
-              step="1"
-              value="80"
-            />
-          </div>
-        </section>
-
-        <section class="preview-section">
-          <div class="preview-card">
-            <h2>原图</h2>
-            <div class="preview-image-wrapper">
-              <img id="original-preview" alt="原图预览" />
+              </div>
             </div>
-            <p id="original-info" class="info-text">尚未选择图片</p>
           </div>
 
-          <div class="preview-card">
-            <h2>压缩后</h2>
-            <div class="preview-image-wrapper">
-              <img id="compressed-preview" alt="压缩后预览" />
+          <!-- 批量图片列表 -->
+          <div id="batch-list-section" class="batch-list-section" style="display: none;">
+            <div class="batch-header">
+              <h3>已上传 <span id="batch-count">0</span> 张图片</h3>
+              <div class="batch-actions">
+                <button id="compress-all-btn" class="action-btn primary">压缩全部</button>
+                <button id="download-all-btn" class="action-btn primary" disabled>下载全部 (ZIP)</button>
+                <button id="clear-all-btn" class="action-btn secondary">清空</button>
+              </div>
             </div>
-            <p id="compressed-info" class="info-text">请先上传图片</p>
-            <button
-              id="download-btn"
-              class="primary-btn"
-              disabled
-            >
-              下载压缩图片
-            </button>
+            <div id="batch-list" class="batch-list"></div>
           </div>
-        </section>
+
+          <!-- 预览区域 -->
+          <div id="preview-area" class="preview-area" style="display: none;">
+            <div class="preview-grid">
+              <div class="preview-item">
+                <div class="preview-header">
+                  <h3>原图</h3>
+                  <div class="preview-actions">
+                    <button id="zoom-original-btn" class="icon-btn" title="放大" style="display: none;">🔍</button>
+                    <button id="delete-original-btn" class="icon-btn" title="删除" style="display: none;">×</button>
+                  </div>
+                </div>
+                <div class="preview-box">
+                  <img id="original-preview" alt="原图" />
+                </div>
+                <p id="original-info" class="preview-info">-</p>
+              </div>
+              <div class="preview-item">
+                <div class="preview-header">
+                  <h3>压缩后</h3>
+                  <div class="preview-actions">
+                    <button id="zoom-compressed-btn" class="icon-btn" title="放大" style="display: none;">🔍</button>
+                  </div>
+                </div>
+                <div class="preview-box">
+                  <img id="compressed-preview" alt="压缩后" />
+                </div>
+                <p id="compressed-info" class="preview-info">-</p>
+                <button id="download-btn" class="download-btn" disabled>下载图片</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 证件照功能 -->
+        <div id="idphoto-panel" class="main-panel">
+          <!-- 上传区域 -->
+          <div id="idphoto-drop-area" class="upload-area">
+            <input id="idphoto-file-input" type="file" accept="image/*" hidden />
+            <div class="upload-content">
+              <div class="upload-icon">📷</div>
+              <p class="upload-text">选择证件照图片</p>
+              <button id="idphoto-choose-btn" class="upload-btn">选择图片</button>
+              <p class="upload-hint">支持 JPG / PNG / WebP，单张最大 20MB</p>
+            </div>
+          </div>
+
+          <!-- 尺寸选择 -->
+          <div id="idphoto-controls" class="controls-panel" style="display: none;">
+            <div class="control-group">
+              <label class="control-label">证件照尺寸</label>
+              <div class="size-options">
+                <label class="size-option">
+                  <input type="radio" name="idphoto-size" value="1inch" checked />
+                  <span>1寸 (295×413px)</span>
+                </label>
+                <label class="size-option">
+                  <input type="radio" name="idphoto-size" value="small1inch" />
+                  <span>小1寸 (260×378px)</span>
+                </label>
+                <label class="size-option">
+                  <input type="radio" name="idphoto-size" value="large1inch" />
+                  <span>大1寸 (390×567px)</span>
+                </label>
+                <label class="size-option">
+                  <input type="radio" name="idphoto-size" value="2inch" />
+                  <span>2寸 (413×579px)</span>
+                </label>
+                <label class="size-option">
+                  <input type="radio" name="idphoto-size" value="small2inch" />
+                  <span>小2寸 (390×567px)</span>
+                </label>
+                <label class="size-option">
+                  <input type="radio" name="idphoto-size" value="large2inch" />
+                  <span>大2寸 (413×626px)</span>
+                </label>
+                <label class="size-option">
+                  <input type="radio" name="idphoto-size" value="custom" />
+                  <span>自定义</span>
+                </label>
+              </div>
+            </div>
+            <div id="custom-size-inputs" class="control-group" style="display: none;">
+              <div class="input-row">
+                <label>
+                  <span>宽度</span>
+                  <input id="custom-width" type="number" min="100" max="5000" value="295" class="size-input" />
+                  <span>px</span>
+                </label>
+                <label>
+                  <span>高度</span>
+                  <input id="custom-height" type="number" min="100" max="5000" value="413" class="size-input" />
+                  <span>px</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 预览区域 -->
+          <div id="idphoto-preview-area" class="preview-area" style="display: none;">
+            <div class="preview-item single">
+              <div class="preview-header">
+                <h3>原图</h3>
+                <div class="preview-actions">
+                  <button id="zoom-idphoto-original-btn" class="icon-btn" title="放大" style="display: none;">🔍</button>
+                    <button id="delete-idphoto-original-btn" class="icon-btn" title="删除" style="display: none;">×</button>
+                </div>
+              </div>
+              <div class="preview-box">
+                <img id="idphoto-original-preview" alt="原图" />
+              </div>
+              <p id="idphoto-original-info" class="preview-info">-</p>
+            </div>
+            <div class="preview-item single">
+              <div class="preview-header">
+                <h3>处理后的证件照</h3>
+                <div class="preview-actions">
+                  <button id="zoom-idphoto-btn" class="icon-btn" title="放大" style="display: none;">🔍</button>
+                </div>
+              </div>
+              <div class="preview-box">
+                <img id="idphoto-preview" alt="证件照" />
+              </div>
+              <p id="idphoto-info" class="preview-info">-</p>
+              <button id="download-idphoto-btn" class="download-btn" disabled>下载证件照</button>
+            </div>
+          </div>
+        </div>
       </main>
 
+      <!-- 图片放大模态框 -->
+      <div id="image-modal" class="modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+          <button class="modal-close">×</button>
+          <img id="modal-image" src="" alt="放大预览" />
+        </div>
+      </div>
+
       <footer class="app-footer">
-        <p>所有压缩操作都在你的浏览器本地完成，图片不会上传到服务器。</p>
+        <p>🔒 所有操作都在本地浏览器完成，图片不会上传到服务器</p>
       </footer>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>
-
-
